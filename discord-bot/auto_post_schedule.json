@@ -1,0 +1,132 @@
+{
+  "version": 1,
+  "timezone": "America/New_York",
+  "guild_id": "866125624656789514",
+  "campaign_start": "2026-11-10",
+  "campaign_end": "2026-11-30",
+  "entries": [
+    {
+      "id": "platform-rollcall",
+      "at": "2026-11-10T12:00:00-05:00",
+      "channel": "gta6-general",
+      "en": "🎮 **PLATFORM CHECK-IN**\nWill you be playing on PS5 or Xbox Series X|S? Introduce yourself and meet other GTA fans!",
+      "es": "🎮 **¿EN QUÉ CONSOLA JUGARÁS?**\n¿Jugarás en PS5 o Xbox Series X|S? ¡Preséntate y conoce a otros fans de GTA!"
+    },
+    {
+      "id": "dream-ride",
+      "at": "2026-11-11T16:00:00-05:00",
+      "channel": "gta6-predictions",
+      "en": "🚗 **YOUR DREAM VICE CITY RIDE**\nWhich would you explore in first: a sports car, motorcycle, boat, or helicopter? This is a community prediction, not a confirmed feature.",
+      "es": "🚗 **TU VEHÍCULO SOÑADO PARA VICE CITY**\n¿Qué usarías primero: deportivo, moto, lancha o helicóptero? Es una predicción de la comunidad, no una función confirmada."
+    },
+    {
+      "id": "favorite-official-image",
+      "at": "2026-11-12T18:00:00-05:00",
+      "channel": "gta6-media",
+      "title": "GTA VI | Community Media / Contenido de la comunidad",
+      "en": "📸 **OFFICIAL IMAGE SPOTLIGHT**\nPick your favorite image from Rockstar's GTA VI site and explain what makes it special. Credit creators and mark fan-made images clearly.\nhttps://www.rockstargames.com/VI",
+      "es": "📸 **FOTO OFICIAL DESTACADA**\nElige tu imagen favorita del sitio de GTA VI de Rockstar y cuéntanos por qué te gusta. Da crédito a los autores e identifica el contenido creado por fans.\nhttps://www.rockstargames.com/VI"
+    },
+    {
+      "id": "trivia-three-protagonists",
+      "at": "2026-11-13T15:00:00-05:00",
+      "channel": "gta6-challenges",
+      "en": "🏆 **GTA TRIVIA — ROUND 2**\nWhich GTA first introduced switching among three main playable protagonists?\n**A)** GTA IV  **B)** GTA V  **C)** Vice City  **D)** San Andreas\nPost A, B, C or D!",
+      "es": "🏆 **TRIVIA DE GTA — RONDA 2**\n¿Qué GTA introdujo la opción de cambiar entre tres protagonistas principales jugables?\n**A)** GTA IV  **B)** GTA V  **C)** Vice City  **D)** San Andreas\n¡Escribe A, B, C o D!"
+    },
+    {
+      "id": "favorite-radio",
+      "at": "2026-11-14T14:00:00-05:00",
+      "channel": "gta6-general",
+      "en": "🎵 **GTA RADIO MEMORIES**\nWhat's your favorite radio station or soundtrack moment from any previous GTA game? Tell us which game!",
+      "es": "🎵 **RECUERDOS DE LA RADIO DE GTA**\n¿Cuál es tu emisora o momento musical favorito de cualquier GTA anterior? ¡Dinos en qué juego apareció!"
+    },
+    {
+      "id": "exploration-style",
+      "at": "2026-11-15T16:00:00-05:00",
+      "channel": "gta6-predictions",
+      "en": "🌴 **WHAT WILL YOU EXPLORE FIRST?**\nWhen you have the game, will you explore side streets, focus on the story, look for secrets, or cruise around? Share your plan!",
+      "es": "🌴 **¿QUÉ EXPLORARÁS PRIMERO?**\nCuando tengas el juego, ¿recorrerás las calles, seguirás la historia, buscarás secretos o pasearás en coche? ¡Cuéntanos tu plan!"
+    },
+    {
+      "id": "fan-art-showcase",
+      "at": "2026-11-16T18:00:00-05:00",
+      "channel": "gta6-media",
+      "title": "GTA VI | Community Media / Contenido de la comunidad",
+      "en": "🎨 **VICE CITY FAN ART CHALLENGE**\nShare an original Vice City-inspired wallpaper or design. Credit creators, label AI-made art, and don't repost work without permission.",
+      "es": "🎨 **RETO DE ARTE DE VICE CITY**\nComparte un fondo de pantalla o diseño original inspirado en Vice City. Da créditos, identifica el arte generado con IA y no publiques trabajos ajenos sin permiso."
+    },
+    {
+      "id": "countdown-reminder",
+      "at": "2026-11-17T19:00:00-05:00",
+      "channel": "gta6-announcements",
+      "en": "🚨 **GTA VI LAUNCH-EVE PARTY REMINDER**\nOur Mig's World Discord countdown celebration begins **November 18 at 11:45 PM Eastern**. Mark yourself Interested and invite a friend!\nhttps://discord.gg/rSUVaYmUa?event=1569361550597169286",
+      "es": "🚨 **RECORDATORIO DE LA FIESTA DE GTA VI**\nLa cuenta regresiva de Mig's World en Discord comienza **el 18 de noviembre a las 11:45 p. m., hora del Este**. ¡Confirma tu asistencia e invita a alguien!\nhttps://discord.gg/rSUVaYmUa?event=1569361550597169286"
+    },
+    {
+      "id": "final-invite",
+      "at": "2026-11-18T20:30:00-05:00",
+      "channel": "gta6-announcements",
+      "en": "🔥 **TONIGHT: GTA VI COMMUNITY COUNTDOWN**\nJoin Mig's World at **11:45 PM Eastern tonight** for trivia, predictions, and our midnight celebration. This is a fan event, not a promise of the game's unlock time.\nhttps://discord.gg/rSUVaYmUa?event=1569361550597169286",
+      "es": "🔥 **HOY: CUENTA REGRESIVA DE GTA VI**\nÚnete a Mig's World **hoy a las 11:45 p. m., hora del Este** para trivia, predicciones y la celebración de medianoche. Es un evento de fans, no una hora garantizada de desbloqueo.\nhttps://discord.gg/rSUVaYmUa?event=1569361550597169286"
+    },
+    {
+      "id": "voice-lounge-reminder",
+      "at": "2026-11-18T23:30:00-05:00",
+      "channel": "gta6-general",
+      "en": "🎙️ **15 MINUTES TO THE PARTY!**\nOur voice-chat kickoff is at **11:45 PM ET**. Join Vice City Lounge and say hello to the crew!",
+      "es": "🎙️ **¡FALTAN 15 MINUTOS!**\nLa fiesta en el chat de voz empieza a las **11:45 p. m. (hora del Este)**. ¡Entra a Vice City Lounge y saluda a todos!"
+    },
+    {
+      "id": "post-party-checkin",
+      "at": "2026-11-19T12:00:00-05:00",
+      "channel": "gta6-general",
+      "en": "🎮 **COMMUNITY CHECK-IN**\nHow was last night's countdown party? Share your favorite moment. Keep any story spoilers in #gta6-spoilers.",
+      "es": "🎮 **¿CÓMO LA PASARON?**\n¿Cómo estuvo la fiesta de anoche? Comparte tu momento favorito. Deja los spoilers de la historia en #gta6-spoilers."
+    },
+    {
+      "id": "classic-gta-trivia",
+      "at": "2026-11-20T15:00:00-05:00",
+      "channel": "gta6-challenges",
+      "en": "🏆 **CLASSIC GTA TRIVIA**\nWhich city is the main setting of **GTA: San Andreas**' opening missions?\n**A)** Los Santos  **B)** Liberty City  **C)** Vice City  **D)** Carcer City\nNo Googling!",
+      "es": "🏆 **TRIVIA CLÁSICA DE GTA**\n¿En qué ciudad transcurren las primeras misiones de **GTA: San Andreas**?\n**A)** Los Santos  **B)** Liberty City  **C)** Vice City  **D)** Carcer City\n¡Sin buscar en Internet!"
+    },
+    {
+      "id": "community-gallery",
+      "at": "2026-11-21T16:00:00-05:00",
+      "channel": "gta6-media",
+      "title": "GTA VI | Community Media / Contenido de la comunidad",
+      "en": "📷 **COMMUNITY PHOTO SHOWCASE**\nShare one original, spoiler-free screenshot, wallpaper, or fan-made image you love. Credit the creator and use spoiler tags when necessary.",
+      "es": "📷 **GALERÍA DE LA COMUNIDAD**\nComparte una captura original sin spoilers, un fondo de pantalla o arte de fans que te guste. Da crédito al autor y usa etiquetas de spoiler cuando corresponda."
+    },
+    {
+      "id": "favorite-openworld",
+      "at": "2026-11-23T15:00:00-05:00",
+      "channel": "gta6-general",
+      "en": "🌴 **OPEN-WORLD CHAT**\nWhat do you enjoy most in a GTA game: exploring, missions, driving, music, or finding easter eggs? Keep answers spoiler-free.",
+      "es": "🌴 **CHARLA DE MUNDO ABIERTO**\n¿Qué disfrutas más de GTA: explorar, misiones, conducir, música o buscar secretos? Responde sin spoilers."
+    },
+    {
+      "id": "vice-city-trivia",
+      "at": "2026-11-25T17:00:00-05:00",
+      "channel": "gta6-challenges",
+      "en": "🏆 **VICE CITY TRIVIA**\nWhich decade is **Grand Theft Auto: Vice City (2002)** set in?\n**A)** 1970s  **B)** 1980s  **C)** 1990s  **D)** 2000s",
+      "es": "🏆 **TRIVIA DE VICE CITY**\n¿En qué década se ambienta **Grand Theft Auto: Vice City (2002)**?\n**A)** 1970  **B)** 1980  **C)** 1990  **D)** 2000"
+    },
+    {
+      "id": "weekend-art",
+      "at": "2026-11-27T18:00:00-05:00",
+      "channel": "gta6-media",
+      "title": "GTA VI | Community Media / Contenido de la comunidad",
+      "en": "🎨 **WEEKEND ART CORNER**\nShow us a cool *original* GTA-inspired design you made. No leaks or stolen art. Please credit creators.",
+      "es": "🎨 **RINCÓN DE ARTE DEL FIN DE SEMANA**\nMuéstranos un diseño *original* inspirado en GTA que hayas creado. Nada de filtraciones ni arte robado. Da crédito a los autores."
+    },
+    {
+      "id": "community-next-month",
+      "at": "2026-11-30T16:00:00-05:00",
+      "channel": "gta6-general",
+      "en": "🎮 **WHAT NEXT FOR MIG'S WORLD?**\nWhat should we host next: GTA trivia, screenshot contests, weekly chats, or community game nights? Vote in replies!",
+      "es": "🎮 **¿QUÉ SIGUE EN MIG'S WORLD?**\n¿Qué hacemos después: trivia de GTA, concursos de capturas, charlas semanales o noches de juego? ¡Vota en los comentarios!"
+    }
+  ]
+}
