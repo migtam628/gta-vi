@@ -129,7 +129,10 @@ def send_post(guild_id, entry, channels):
         thread = request("POST", f"/channels/{channel_id}/threads", {
             "name": entry.get("title", "GTA VI | Mig's World"),
             "auto_archive_duration": 1440,
-            "message": body,
+            "message": {
+                "content": content(entry),
+                "allowed_mentions": {"parse": []},
+            },
         })
         record_id = thread["id"]
         link = f"https://discord.com/channels/{guild_id}/{record_id}"
