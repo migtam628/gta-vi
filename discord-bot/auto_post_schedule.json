@@ -68,14 +68,16 @@
       "at": "2026-11-18T20:30:00-05:00",
       "channel": "gta6-announcements",
       "en": "🔥 **TONIGHT: GTA VI COMMUNITY COUNTDOWN**\nJoin Mig's World at **11:45 PM Eastern tonight** for trivia, predictions, and our midnight celebration. This is a fan event, not a promise of the game's unlock time.\nhttps://discord.gg/rSUVaYmUa?event=1569361550597169286",
-      "es": "🔥 **HOY: CUENTA REGRESIVA DE GTA VI**\nÚnete a Mig's World **hoy a las 11:45 p. m., hora del Este** para trivia, predicciones y la celebración de medianoche. Es un evento de fans, no una hora garantizada de desbloqueo.\nhttps://discord.gg/rSUVaYmUa?event=1569361550597169286"
+      "es": "🔥 **HOY: CUENTA REGRESIVA DE GTA VI**\nÚnete a Mig's World **hoy a las 11:45 p. m., hora del Este** para trivia, predicciones y la celebración de medianoche. Es un evento de fans, no una hora garantizada de desbloqueo.\nhttps://discord.gg/rSUVaYmUa?event=1569361550597169286",
+      "grace_minutes": 60
     },
     {
       "id": "voice-lounge-reminder",
       "at": "2026-11-18T23:30:00-05:00",
       "channel": "gta6-general",
       "en": "🎙️ **15 MINUTES TO THE PARTY!**\nOur voice-chat kickoff is at **11:45 PM ET**. Join Vice City Lounge and say hello to the crew!",
-      "es": "🎙️ **¡FALTAN 15 MINUTOS!**\nLa fiesta en el chat de voz empieza a las **11:45 p. m. (hora del Este)**. ¡Entra a Vice City Lounge y saluda a todos!"
+      "es": "🎙️ **¡FALTAN 15 MINUTOS!**\nLa fiesta en el chat de voz empieza a las **11:45 p. m. (hora del Este)**. ¡Entra a Vice City Lounge y saluda a todos!",
+      "grace_minutes": 14
     },
     {
       "id": "post-party-checkin",
