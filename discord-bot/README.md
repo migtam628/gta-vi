@@ -141,3 +141,47 @@ docker compose exec -T countdown-bot python seed_channels.py --publish --only gt
 The bot needs **View Channel**, **Send Messages**, and **Embed Links** for the target channels, and permission to create a post in a Forum/Media channel. `#gta6-media` may be a Discord Media channel, so the tool automatically creates a media/forum **thread post**, not an invalid ordinary text message. If any required tag is configured on a media/forum channel, the tool stops **before posting anything** and asks you to address that channel setting; it does not guess which tag to use.
 
 The tool uses the bot token from your existing private `.env`. It does not print your token or enable `@everyone` pings. It posts to the **Mig's World server only** (`866125624656789514`). To change the content, edit the reviewed JSON file in GitHub and rebuild before publishing. If a publish run partially succeeds, the recorded posts are skipped on a rerun.
+
+## Full bilingual publishing / Publicaciones completas en ambos idiomas
+
+**English:** All six starter posts now contain **complete English and Spanish sections**. The shared public countdown supports **`COUNTDOWN_LANGUAGE=bi`** to display both languages in one message. Private per-member translations and website language detection remain available.
+
+**Español:** Las seis publicaciones iniciales ahora incluyen **versiones completas en inglés y español**. La cuenta regresiva pública admite **`COUNTDOWN_LANGUAGE=bi`** para mostrar ambos idiomas en un mismo mensaje. También siguen disponibles las traducciones privadas y la detección automática del idioma en la web.
+
+**To activate / Para activar:**
+
+```bash
+cd ~/gta-vi/discord-bot
+git pull --ff-only
+# Keep the existing token and channel ID; update only the public embed language.
+if grep -q '^COUNTDOWN_LANGUAGE=' .env; then
+  sed -i 's/^COUNTDOWN_LANGUAGE=.*/COUNTDOWN_LANGUAGE=bi/' .env
+else
+  printf '\nCOUNTDOWN_LANGUAGE=bi\n' >> .env
+fi
+docker compose up -d --build --force-recreate
+```
+
+**Preview bilingual posts / Vista previa en ambos idiomas (no publishing):**
+
+```bash
+docker compose exec -T countdown-bot python seed_channels.py
+```
+
+**Publish new posts / Publicar mensajes nuevos (after granting bot permissions in the channels):**
+
+```bash
+docker compose exec -T countdown-bot python seed_channels.py --publish
+```
+
+**Update existing tracked posts / Actualizar publicaciones existentes sin duplicarlas:**
+
+```bash
+docker compose exec -T countdown-bot python seed_channels.py --publish --update
+```
+
+**Permission error / Error de permisos:** `403 Missing Permissions / 50013` means the bot can authenticate, but cannot publish in a selected channel. Check **Edit Channel → Permissions** for the bot role: **View Channel, Send Messages, Embed Links, Read Message History**. For a Forum/Media channel also allow creating posts and sending messages in threads. Check parent-category Deny overrides. The publishing script now prints the **exact failing channel name and ID**. It never uses administrator privileges or unsolicited mass mentions.
+
+**English:** The script does **not** modify the existing live countdown and remembers already published IDs in its Docker named volume. If the original posts were already published, use `--publish --update`; if none were published, use `--publish` after fixing permissions. Never use `docker compose down -v` because it erases the state volume.
+
+**Español:** El script **no modifica** la cuenta regresiva actual y guarda los IDs de los mensajes publicados en el volumen de Docker. Si los mensajes originales ya se publicaron, usa `--publish --update`; si aún no hay ninguno, usa `--publish` después de corregir los permisos. Evita `docker compose down -v` porque borra el volumen de estado.
