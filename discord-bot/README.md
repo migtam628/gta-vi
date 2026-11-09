@@ -110,3 +110,34 @@ docker compose logs --tail=30 -f
 
 The new 🌍 button is added to the **same existing Discord message**, preserving its pin and link. Existing `.env` secrets are preserved. If the shared message is in Spanish today it stays Spanish, while each member's button displays the selected translation privately. To change the default public language, set `COUNTDOWN_LANGUAGE=en` or `COUNTDOWN_LANGUAGE=es` in `.env` and recreate the container.
 
+
+## Launch-week channel starters
+
+There are **six reviewed, bilingual English/Spanish starter posts** in `channel_seed_posts.json`: announcements, general chat, predictions, challenges, media, and spoiler rules. The live `#launch-countdown` bot is already managing that channel and is intentionally left untouched. The `ROAD_TO_VICE_CITY.md` file contains a daily activity calendar.
+
+The publishing tool is **preview-first**: simply running it never sends anything. It sends messages only when `--publish` is included, and stores the posted message IDs in the existing Docker named volume to avoid duplicating posts on repeated runs.
+
+**On your VPS:**
+
+```bash
+cd ~/gta-vi/discord-bot
+git pull --ff-only
+docker compose up -d --build --force-recreate
+
+# Preview six posts; no messages are sent:
+docker compose exec -T countdown-bot python seed_channels.py
+
+# Only when ready, publish one starter post per channel:
+docker compose exec -T countdown-bot python seed_channels.py --publish
+```
+
+Or preview/publish only one channel:
+
+```bash
+docker compose exec -T countdown-bot python seed_channels.py --only gta6-general
+docker compose exec -T countdown-bot python seed_channels.py --publish --only gta6-general
+```
+
+The bot needs **View Channel**, **Send Messages**, and **Embed Links** for the target channels, and permission to create a post in a Forum/Media channel. `#gta6-media` may be a Discord Media channel, so the tool automatically creates a media/forum **thread post**, not an invalid ordinary text message. If any required tag is configured on a media/forum channel, the tool stops **before posting anything** and asks you to address that channel setting; it does not guess which tag to use.
+
+The tool uses the bot token from your existing private `.env`. It does not print your token or enable `@everyone` pings. It posts to the **Mig's World server only** (`866125624656789514`). To change the content, edit the reviewed JSON file in GitHub and rebuild before publishing. If a publish run partially succeeds, the recorded posts are skipped on a rerun.
