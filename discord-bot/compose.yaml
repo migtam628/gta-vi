@@ -16,5 +16,23 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+  auto-post:
+    build: .
+    container_name: migs-world-gta-vi-auto-post
+    command: ["python", "auto_post.py", "--run"]
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - countdown_state:/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 volumes:
   countdown_state:
