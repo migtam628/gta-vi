@@ -1,6 +1,6 @@
 # Mig's World — GTA VI Discord Countdown Bot
 
-One live-updating Discord **embed message** for the GTA VI community launch-eve party. The bot edits the **same message every 60 seconds** (not one message per minute). A native Discord relative timestamp stays up to date between edits. It includes link buttons for the [Discord event](https://discord.gg/rSUVaYmUa?event=1569361550597169286) and the [live countdown website](https://migtam628.github.io/gta-vi/).
+One live-updating Discord **embed message** for the GTA VI community launch-eve party. The bot shows **days, hours, minutes, and seconds** and edits the **same message about every 15 seconds** by default (without sending new messages). Discord embed text cannot animate every second; use the live countdown website for a smooth 1-second timer. A native Discord relative timestamp stays up to date between edits. It includes link buttons for the [Discord event](https://discord.gg/rSUVaYmUa?event=1569361550597169286) and the [live countdown website](https://migtam628.github.io/gta-vi/).
 
 **Kickoff:** Wednesday, November 18, 2026 at **11:45 PM America/New_York** (November 19 at 04:45 UTC). This is a fan party kickoff, not a guaranteed game unlock time.
 
@@ -31,7 +31,7 @@ docker compose up -d --build
 docker compose logs --tail=60 -f
 ```
 
-The bot posts a single countdown and edits it once per minute. It saves the message ID in a Docker named volume so restarts don't create duplicate announcements. If the state volume is lost, it checks recent channel history for the previous countdown. Optional `PIN_MESSAGE=true` pins the message if the bot has permission.
+The bot posts a single countdown and edits it approximately every 15 seconds (configurable with `UPDATE_INTERVAL_SECONDS`, minimum 15). It saves the message ID in a Docker named volume so restarts don't create duplicate announcements. If the state volume is lost, it checks recent channel history for the previous countdown. Optional `PIN_MESSAGE=true` pins the message if the bot has permission.
 
 ## Operations
 
@@ -42,12 +42,17 @@ docker compose restart
 docker compose down    # preserves the named state volume
 ```
 
-To update:
+To update an existing VPS installation to show seconds:
 
 ```bash
 git pull --ff-only
-docker compose up -d --build
+# Preserve the existing token and channel ID; change only the refresh interval:
+sed -i 's/^UPDATE_INTERVAL_SECONDS=.*/UPDATE_INTERVAL_SECONDS=15/' .env
+docker compose up -d --build --force-recreate
+docker compose logs --tail=30 -f
 ```
+
+This edits the existing countdown message, so the pinned message and its link remain the same. While the embed visibly includes seconds, the digits update every ~15 seconds, not continuously. For a smooth every-second display, use the [website](https://migtam628.github.io/gta-vi/) or share it on a Discord video stream.
 
 Run only one instance in the same Discord channel. Avoid `docker compose down -v`, which deletes the message-ID volume. To relocate the countdown to another channel, change `DISCORD_CHANNEL_ID` and restart; the bot will create a new message there.
 
