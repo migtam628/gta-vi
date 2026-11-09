@@ -185,3 +185,44 @@ docker compose exec -T countdown-bot python seed_channels.py --publish --update
 **English:** The script does **not** modify the existing live countdown and remembers already published IDs in its Docker named volume. If the original posts were already published, use `--publish --update`; if none were published, use `--publish` after fixing permissions. Never use `docker compose down -v` because it erases the state volume.
 
 **Español:** El script **no modifica** la cuenta regresiva actual y guarda los IDs de los mensajes publicados en el volumen de Docker. Si los mensajes originales ya se publicaron, usa `--publish --update`; si aún no hay ninguno, usa `--publish` después de corregir los permisos. Evita `docker compose down -v` porque borra el volumen de estado.
+
+## Automatic bilingual posting — enabled with the new Docker service
+
+**English:** The `auto-post` service publishes a reviewed schedule of **17 bilingual posts** between **November 10 and November 30, 2026**, in the `America/New_York` time zone. It is enabled by default when this new Docker Compose service is deployed, and uses the same existing bot token and server access as the countdown. It will not send `@everyone` or `@here` mentions. Its approved messages are stored in `auto_post_schedule.json`.
+
+**Español:** El servicio `auto-post` publica un calendario revisado de **17 mensajes bilingües** entre el **10 y el 30 de noviembre de 2026**, en el horario `America/New_York`. Se activa de forma predeterminada al desplegar el nuevo servicio Docker Compose y utiliza el mismo token privado del bot. No enviará menciones `@everyone` ni `@here`. Los mensajes aprobados están en `auto_post_schedule.json`.
+
+### Activate on the VPS / Activar en el VPS
+
+```bash
+cd ~/gta-vi/discord-bot
+git pull --ff-only
+docker compose up -d --build
+docker compose ps
+# Safe preview: schedule and already-published status, no new posts
+docker compose exec -T auto-post python auto_post.py --preview
+# Follow only the scheduled-post worker logs
+docker compose logs --tail=40 -f auto-post
+```
+
+The scheduled posting worker runs continuously but **only posts at approved dates and times**. It records posted IDs in the existing Docker named volume at `/data/auto_post_state.json`; restarts do not re-send those posts. Posts older than 120 minutes are skipped rather than dumped into Discord when the server comes back online. A final November 18 reminder has a shorter cutoff. Channels that deny access are logged as failures and do not block other channels.
+
+El servicio sigue funcionando y **solo publica en los días y horarios aprobados**. Guarda los IDs publicados en `/data/auto_post_state.json`; los reinicios no duplican mensajes. Los mensajes atrasados más de 120 minutos se omiten en lugar de publicarse todos a la vez. Los errores de permisos se registran por canal.
+
+### Pause / Pausar
+
+```bash
+# Pause without stopping your live countdown
+docker compose stop auto-post
+
+# Resume scheduled posts
+docker compose start auto-post
+```
+
+To disable via your private `.env`, set `AUTO_POST_ENABLED=false` and recreate only the service with `docker compose up -d --force-recreate auto-post`. Restart it with `AUTO_POST_ENABLED=true` to resume. Do not remove the named volume.
+
+Para desactivar desde `.env`, configura `AUTO_POST_ENABLED=false` y recrea el servicio. Vuelve a `true` para reactivarlo. No borres el volumen de Docker.
+
+**Important:** Automatic posting starts only when the VPS pulls this commit and runs Docker Compose; pushing code to GitHub cannot change the already-running VPS by itself. Your existing live countdown message is preserved. The scheduled campaign automatically ends November 30; no unverified game news or invented giveaways are posted.
+
+**Importante:** La publicación automática comienza únicamente cuando el VPS descarga estos cambios y ejecuta Docker Compose. El mensaje de cuenta regresiva que ya tienes se conserva. La campaña termina el 30 de noviembre; no se publican noticias sin confirmar ni premios inventados.
