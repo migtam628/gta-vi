@@ -65,3 +65,28 @@ Run only one instance in the same Discord channel. Avoid `docker compose down -v
 - **Token exposed:** Reset it immediately in the Developer Portal, then update your local `.env`.
 
 This bot uses no Message Content or Members privileged gateway intents.
+
+## Spanish version / Versión en español
+
+The countdown supports both English and Spanish. English stays the default; switch only the Discord embed to Spanish by adding `COUNTDOWN_LANGUAGE=es` in your existing `.env` file. The date, seconds, event buttons, Discord channel, token, and saved message ID stay unchanged. The Spanish Discord button links to the Spanish countdown page.
+
+The website has a language toggle:
+- English: https://migtam628.github.io/gta-vi/
+- Español: https://migtam628.github.io/gta-vi/es/
+
+### Activate Spanish on the VPS
+
+```bash
+cd ~/gta-vi/discord-bot
+git pull --ff-only
+# Add or update the language setting WITHOUT replacing .env or its secrets:
+if grep -q '^COUNTDOWN_LANGUAGE=' .env; then
+  sed -i 's/^COUNTDOWN_LANGUAGE=.*/COUNTDOWN_LANGUAGE=es/' .env
+else
+  printf '\\nCOUNTDOWN_LANGUAGE=es\\n' >> .env
+fi
+docker compose up -d --build --force-recreate
+docker compose logs --tail=20 -f
+```
+
+To switch back to English, replace `COUNTDOWN_LANGUAGE=es` with `COUNTDOWN_LANGUAGE=en` and recreate the container. The bot edits its **existing countdown message**, so its Discord link and any pin remain intact. Discord's relative timestamp is translated automatically according to each viewer's Discord locale.
