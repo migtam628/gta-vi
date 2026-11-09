@@ -121,6 +121,8 @@ def main():
             ". Check bot access, channel names, or required media/forum tags.")
 
     state = read_json(STATE_PATH, fallback={})
+    print("Target server:", guild)
+    print("Selected channels:", ", ".join("#"+p["channel"] for p in posts))
     if args.update:
         bot_user_id = discord_request(token, "GET", "/users/@me")["id"]
         count = 0
@@ -156,25 +158,38 @@ def main():
             continue
         target = by_name[post["channel"]][0]
         channel_id = target["id"]
-        if target["type"] in (15, 16):
-            # Forum/media channels only contain posts (threads), not direct messages.
-            result = discord_request(token, "POST", f"/channels/{channel_id}/threads", {
-                "name": post.get("title", "GTA VI | Community Starter"),
-                "auto_archive_duration": 1440,
-                "message": {
+        print(f"Publishing #{post['channel']} (channel ID: {channel_id})...")
+        try:
+            if target["type"] in (15, 16):
+                # Forum/media channels only contain posts (threads), not direct messages.
+                result = discord_request(token, "POST", f"/channels/{channel_id}/threads", {
+                    "name": post.get("title", "GTA VI | Community Starter"),
+                    "auto_archive_duration": 1440,
+                    "message": {
+                        "content": post["content"],
+                        "allowed_mentions": {"parse": []},
+                    },
+                })
+                record_id = result["id"]
+                url = f"https://discord.com/channels/{guild}/{record_id}"
+            else:
+                result = discord_request(token, "POST", f"/channels/{channel_id}/messages", {
                     "content": post["content"],
                     "allowed_mentions": {"parse": []},
-                },
-            })
-            record_id = result["id"]
-            url = f"https://discord.com/channels/{guild}/{record_id}"
-        else:
-            result = discord_request(token, "POST", f"/channels/{channel_id}/messages", {
-                "content": post["content"],
-                "allowed_mentions": {"parse": []},
-            })
-            record_id = result["id"]
-            url = f"https://discord.com/channels/{guild}/{channel_id}/{record_id}"
+                })
+                record_id = result["id"]
+                url = f"https://discord.com/channels/{guild}/{channel_id}/{record_id}"
+        except RuntimeError as exc:
+            if "403" in str(exc):
+                raise SystemExit(
+                    f"PERMISSION DENIED in #{post['channel']} (ID {channel_id}). "
+                    "In Discord > Edit Channel > Permissions, allow the bot role: "
+                    "View Channel, Send Messages, Embed Links, Read Message History. "
+                    "For media/forum channels also allow Create Posts and Send "
+                    "Messages in Threads. Check parent category denies. "
+                    f"Original API response: {exc}"
+                ) from None
+            raise
         state[key] = record_id
         persist_state(state)
         print(f"POSTED #{post['channel']}: {url}")
