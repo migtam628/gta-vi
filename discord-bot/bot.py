@@ -136,7 +136,7 @@ def make_embed(now: datetime, spanish: bool | None = None) -> discord.Embed:
             )
         color = discord.Color.from_rgb(255, 59, 186)
 
-    embed = discord.Embed(title=EVENT_TITLE, description=description, color=color)
+    embed = discord.Embed(title=EVENT_TITLE_ES if spanish else EVENT_TITLE_EN, description=description, color=color)
     embed.add_field(
         name="📅 Fiesta previa al lanzamiento" if spanish else "📅 Launch Eve Party",
         value=f"<t:{TARGET_TS}:F>", inline=False)
