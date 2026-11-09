@@ -1,7 +1,7 @@
-"""Post the reviewed GTA VI starter pack to Mig's World Discord, once only.
+"""Preview, post, or safely update the bilingual Mig's World starter pack.
 
-Preview is the default. Publishing requires --publish and uses the bot token
-already stored privately in the existing Docker Compose environment.
+All writes are opt-in. The bot token stays in the VPS environment; only recorded,
+original bot-authored posts are eligible for updating.
 """
 
 import argparse
@@ -70,6 +70,8 @@ def main():
                         help="Actually send Discord posts (otherwise preview only)")
     parser.add_argument("--only", action="append", default=[],
                         help="Channel name to publish/preview, repeatable")
+    parser.add_argument("--update", action="store_true",
+                        help="Edit only previously recorded starter posts; never create new ones")
     args = parser.parse_args()
 
     pack = read_json(PACK_PATH)
@@ -85,12 +87,14 @@ def main():
             raise SystemExit(f"Discord 2000-char limit exceeded: {post['id']}")
 
     if not args.publish:
-        print("PREVIEW ONLY — nothing will be posted.")
+        print("PREVIEW ONLY — nothing will be posted or edited.")
+        if args.update:
+            print("UPDATE PREVIEW: on --publish --update, only tracked bot posts are edited.")
         for post in posts:
             print("\n" + "=" * 60)
             print(f"#{post['channel']} | {post['id']}")
             print(post["content"])
-        print("\nTo send these messages, add --publish.")
+        print("\nUse --publish to send new posts, or --publish --update to edit tracked posts.")
         return
 
     token = os.getenv("DISCORD_BOT_TOKEN", "").strip()
@@ -117,6 +121,34 @@ def main():
             ". Check bot access, channel names, or required media/forum tags.")
 
     state = read_json(STATE_PATH, fallback={})
+    if args.update:
+        bot_user_id = discord_request(token, "GET", "/users/@me")["id"]
+        count = 0
+        for post in posts:
+            key = str(guild) + ":" + post["id"]
+            record_id = state.get(key)
+            if not record_id:
+                print(f"SKIP #{post['channel']}: no previously tracked post to update")
+                continue
+            channel = by_name[post["channel"]][0]
+            # For media/forums, the initial message ID is the thread ID.
+            destination = (str(record_id) if channel["type"] in (15, 16)
+                           else channel["id"])
+            existing = discord_request(
+                token, "GET", f"/channels/{destination}/messages/{record_id}")
+            if existing.get("author", {}).get("id") != bot_user_id:
+                raise SystemExit(f"Refusing to modify a message not authored by the bot: {post['id']}")
+            discord_request(
+                token, "PATCH", f"/channels/{destination}/messages/{record_id}", {
+                    "content": post["content"],
+                    "allowed_mentions": {"parse": []},
+                })
+            print(f"UPDATED #{post['channel']}: {record_id}")
+            count += 1
+            time.sleep(1)
+        print(f"Updated {count} previously tracked messages. No new posts were created.")
+        return
+
     for post in posts:
         key = str(guild) + ":" + post["id"]
         if key in state:
