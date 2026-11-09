@@ -22,11 +22,13 @@ EVENT_URL = "https://discord.gg/rSUVaYmUa?event=1569361550597169286"
 COUNTDOWN_URL = "https://migtam628.github.io/gta-vi/"
 EVENT_TITLE_EN = "🌴 GTA VI — THE FINAL COUNTDOWN"
 EVENT_TITLE_ES = "🌴 GTA VI — LA CUENTA REGRESIVA FINAL"
-LANGUAGE = os.getenv("COUNTDOWN_LANGUAGE", "en").strip().lower()
-if LANGUAGE not in ("en", "es"):
-    raise SystemExit("COUNTDOWN_LANGUAGE must be en or es")
+EVENT_TITLE_BI = "🌴 GTA VI — FINAL COUNTDOWN / CUENTA REGRESIVA"
+LANGUAGE = os.getenv("COUNTDOWN_LANGUAGE", "bi").strip().lower()
+if LANGUAGE not in ("en", "es", "bi"):
+    raise SystemExit("COUNTDOWN_LANGUAGE must be en, es, or bi")
 IS_SPANISH = LANGUAGE == "es"
-EVENT_TITLE = EVENT_TITLE_ES if IS_SPANISH else EVENT_TITLE_EN
+EVENT_TITLE = (EVENT_TITLE_BI if LANGUAGE == "bi" else
+               EVENT_TITLE_ES if IS_SPANISH else EVENT_TITLE_EN)
 FOOTER = ("Mig's World • Evento de fans no oficial de GTA VI" if IS_SPANISH
           else "Mig's World • Unofficial GTA VI fan event")
 
@@ -78,10 +80,12 @@ class CountdownView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
         self.add_item(discord.ui.Button(
-            label="Unirse al evento" if IS_SPANISH else "Join Discord Event",
+            label=("Join Event / Unirse" if LANGUAGE == "bi" else
+                   "Unirse al evento" if IS_SPANISH else "Join Discord Event"),
             emoji="🎮", style=discord.ButtonStyle.link, url=EVENT_URL))
         self.add_item(discord.ui.Button(
-            label="Ver cuenta regresiva" if IS_SPANISH else "Open Live Countdown",
+            label=("Live Timer / Cuenta regresiva" if LANGUAGE == "bi" else
+                   "Ver cuenta regresiva" if IS_SPANISH else "Open Live Countdown"),
             emoji="🌐", style=discord.ButtonStyle.link, url=COUNTDOWN_URL))
 
     @discord.ui.button(
@@ -108,6 +112,8 @@ def remaining_seconds(now: datetime) -> int:
 
 def make_embed(now: datetime, spanish: bool | None = None) -> discord.Embed:
     if spanish is None:
+        if LANGUAGE == "bi":
+            return make_bilingual_embed(now)
         spanish = IS_SPANISH
     total_seconds = remaining_seconds(now)
     days, extra = divmod(total_seconds, 86400)
@@ -156,6 +162,33 @@ def make_embed(now: datetime, spanish: bool | None = None) -> discord.Embed:
     embed.set_footer(text=footer + detail)
     return embed
 
+
+def make_bilingual_embed(now: datetime) -> discord.Embed:
+    """Same live countdown in English and Spanish in ONE public embed."""
+    en_card = make_embed(now, spanish=False)
+    es_card = make_embed(now, spanish=True)
+    card = discord.Embed(
+        title=EVENT_TITLE_BI,
+        color=discord.Color.from_rgb(255, 59, 186),
+        description=(
+            "🇺🇸 **ENGLISH**\n" + en_card.description +
+            "\n\n━━━━━━━━━━━━━━━━\n\n" +
+            "🇪🇸 **ESPAÑOL**\n" + es_card.description
+        ),
+    )
+    card.add_field(
+        name="📅 Launch Eve / Fiesta previa",
+        value=f"<t:{TARGET_TS}:F>", inline=False)
+    card.add_field(
+        name="🎮 Join / Participa",
+        value="Use the buttons below / Usa los botones de abajo", inline=False)
+    card.set_footer(
+        text=f"Mig's World • EN/ES • Refresh ~{UPDATE_SECONDS}s / Actualización ~{UPDATE_SECONDS}s"
+             " • Fan event / Evento de fans • Not game unlock / No es el desbloqueo"
+    )
+    return card
+
+
 def load_id() -> int | None:
     override = os.getenv("DISCORD_MESSAGE_ID", "").strip()
     if override.isdecimal():
@@ -193,7 +226,7 @@ async def locate_existing(channel):
     # Recover safely if the volume was recreated: prefer to edit the old bot message.
     async for candidate in channel.history(limit=75):
         if (client.user and candidate.author.id == client.user.id and candidate.embeds
-                and candidate.embeds[0].title in (EVENT_TITLE_EN, EVENT_TITLE_ES)):
+                and candidate.embeds[0].title in (EVENT_TITLE_EN, EVENT_TITLE_ES, EVENT_TITLE_BI)):
             return candidate
     return None
 
