@@ -83,7 +83,7 @@ git pull --ff-only
 if grep -q '^COUNTDOWN_LANGUAGE=' .env; then
   sed -i 's/^COUNTDOWN_LANGUAGE=.*/COUNTDOWN_LANGUAGE=es/' .env
 else
-  printf '\\nCOUNTDOWN_LANGUAGE=es\\n' >> .env
+  printf '\nCOUNTDOWN_LANGUAGE=es\n' >> .env
 fi
 docker compose up -d --build --force-recreate
 docker compose logs --tail=20 -f
