@@ -100,16 +100,21 @@ def main():
     channels = discord_request(token, "GET", f"/guilds/{guild}/channels")
     by_name = {}
     for channel in channels:
-        if channel.get("type") in (0, 5):
-            by_name.setdefault(channel["name"], []).append(channel["id"])
+        if channel.get("type") in (0, 5, 15, 16):
+            by_name.setdefault(channel["name"], []).append(channel)
 
-    # Check all selected channel names before sending anything.
-    problems = [p["channel"] for p in posts
-                if len(by_name.get(p["channel"], [])) != 1]
+    # Check all selected channel names and media-channel settings before posting.
+    problems = []
+    for post in posts:
+        matching = by_name.get(post["channel"], [])
+        if len(matching) != 1:
+            problems.append(post["channel"] + " (missing or duplicate)")
+        elif matching[0]["type"] in (15, 16) and int(matching[0].get("flags", 0)) & 16:
+            problems.append(post["channel"] + " (requires a forum/media tag)")
     if problems:
-        raise SystemExit("Channel missing or ambiguous (nothing sent): " +
-                         ", ".join(problems) +
-                         ". Check the bot's View Channel access and exact names.")
+        raise SystemExit(
+            "Channel setup needs attention (nothing sent): " + ", ".join(problems) +
+            ". Check bot access, channel names, or required media/forum tags.")
 
     state = read_json(STATE_PATH, fallback={})
     for post in posts:
@@ -117,15 +122,30 @@ def main():
         if key in state:
             print(f"SKIP #{post['channel']}: already posted as {state[key]}")
             continue
-        channel_id = by_name[post["channel"]][0]
-        message = discord_request(token, "POST", f"/channels/{channel_id}/messages", {
-            "content": post["content"],
-            "allowed_mentions": {"parse": []},
-        })
-        message_id = message["id"]
-        state[key] = message_id
+        target = by_name[post["channel"]][0]
+        channel_id = target["id"]
+        if target["type"] in (15, 16):
+            # Forum/media channels only contain posts (threads), not direct messages.
+            result = discord_request(token, "POST", f"/channels/{channel_id}/threads", {
+                "name": post.get("title", "GTA VI | Community Starter"),
+                "auto_archive_duration": 1440,
+                "message": {
+                    "content": post["content"],
+                    "allowed_mentions": {"parse": []},
+                },
+            })
+            record_id = result["id"]
+            url = f"https://discord.com/channels/{guild}/{record_id}"
+        else:
+            result = discord_request(token, "POST", f"/channels/{channel_id}/messages", {
+                "content": post["content"],
+                "allowed_mentions": {"parse": []},
+            })
+            record_id = result["id"]
+            url = f"https://discord.com/channels/{guild}/{channel_id}/{record_id}"
+        state[key] = record_id
         persist_state(state)
-        print(f"POSTED #{post['channel']}: https://discord.com/channels/{guild}/{channel_id}/{message_id}")
+        print(f"POSTED #{post['channel']}: {url}")
         time.sleep(1)
     print("Done. Your live countdown message in #launch-countdown was not changed.")
 
