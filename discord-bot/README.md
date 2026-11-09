@@ -90,3 +90,23 @@ docker compose logs --tail=20 -f
 ```
 
 To switch back to English, replace `COUNTDOWN_LANGUAGE=es` with `COUNTDOWN_LANGUAGE=en` and recreate the container. The bot edits its **existing countdown message**, so its Discord link and any pin remain intact. Discord's relative timestamp is translated automatically according to each viewer's Discord locale.
+
+## Automatic language selection
+
+The **website** now detects the visitor's device/browser language using the preferred browser language (no location permission, IP tracking, or geolocation). Visitors preferring Spanish who open the main URL are redirected to `/es/`. All other languages currently fall back to English. Visitors can choose English or Español manually, and their preference is remembered on that browser.
+
+The **Discord public countdown** is a single shared message; Discord does not translate the same bot embed automatically for each member. The new **🌍 My language / Mi idioma** button reads the Discord language of the member who clicks it (`interaction.locale`) and sends that person a private, temporary Spanish or English countdown embed, along with event and website links. Spanish Discord locales (`es-ES`, `es-419`, etc.) receive Spanish; others receive English. It does not discover physical location or inspect Discord member profiles.
+
+The original `COUNTDOWN_LANGUAGE=en|es` setting still controls the **shared public embed**, not the personal translations. The website and the Discord per-user view work independently.
+
+### Deploy to the VPS
+
+```bash
+cd ~/gta-vi/discord-bot
+git pull --ff-only
+docker compose up -d --build --force-recreate
+docker compose logs --tail=30 -f
+```
+
+The new 🌍 button is added to the **same existing Discord message**, preserving its pin and link. Existing `.env` secrets are preserved. If the shared message is in Spanish today it stays Spanish, while each member's button displays the selected translation privately. To change the default public language, set `COUNTDOWN_LANGUAGE=en` or `COUNTDOWN_LANGUAGE=es` in `.env` and recreate the container.
+
