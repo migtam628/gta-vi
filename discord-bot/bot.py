@@ -20,8 +20,15 @@ logger = logging.getLogger("migs-countdown")
 
 EVENT_URL = "https://discord.gg/rSUVaYmUa?event=1569361550597169286"
 COUNTDOWN_URL = "https://migtam628.github.io/gta-vi/"
-EVENT_TITLE = "🌴 GTA VI — THE FINAL COUNTDOWN"
-FOOTER = "Mig's World • Unofficial GTA VI fan event"
+EVENT_TITLE_EN = "🌴 GTA VI — THE FINAL COUNTDOWN"
+EVENT_TITLE_ES = "🌴 GTA VI — LA CUENTA REGRESIVA FINAL"
+LANGUAGE = os.getenv("COUNTDOWN_LANGUAGE", "en").strip().lower()
+if LANGUAGE not in ("en", "es"):
+    raise SystemExit("COUNTDOWN_LANGUAGE must be en or es")
+IS_SPANISH = LANGUAGE == "es"
+EVENT_TITLE = EVENT_TITLE_ES if IS_SPANISH else EVENT_TITLE_EN
+FOOTER = ("Mig's World • Evento de fans no oficial de GTA VI" if IS_SPANISH
+          else "Mig's World • Unofficial GTA VI fan event")
 
 
 def required_int(name: str) -> int:
@@ -54,8 +61,13 @@ last_second: int | None = None
 
 def view() -> discord.ui.View:
     buttons = discord.ui.View(timeout=None)
-    buttons.add_item(discord.ui.Button(label="Join Discord Event", emoji="🎮", style=discord.ButtonStyle.link, url=EVENT_URL))
-    buttons.add_item(discord.ui.Button(label="Open Live Countdown", emoji="🌐", style=discord.ButtonStyle.link, url=COUNTDOWN_URL))
+    buttons.add_item(discord.ui.Button(
+        label="Unirse al evento" if IS_SPANISH else "Join Discord Event",
+        emoji="🎮", style=discord.ButtonStyle.link, url=EVENT_URL))
+    buttons.add_item(discord.ui.Button(
+        label="Ver cuenta regresiva" if IS_SPANISH else "Open Live Countdown",
+        emoji="🌐", style=discord.ButtonStyle.link,
+        url=COUNTDOWN_URL + ("es/" if IS_SPANISH else "")))
     return buttons
 
 
@@ -68,22 +80,46 @@ def make_embed(now: datetime) -> discord.Embed:
     days, extra = divmod(total_seconds, 86400)
     hours, extra = divmod(extra, 3600)
     mins, seconds = divmod(extra, 60)
+
     if now >= TARGET:
-        description = "## 🎉 THE PARTY IS LIVE!\nWelcome to Vice City! Join us in Mig's World."
+        description = (
+            "## 🎉 ¡LA FIESTA YA COMENZÓ!\n¡Bienvenidos a Vice City! Únanse a Mig's World."
+            if IS_SPANISH else
+            "## 🎉 THE PARTY IS LIVE!\nWelcome to Vice City! Join us in Mig's World."
+        )
         color = discord.Color.from_rgb(72, 232, 252)
     else:
-        description = (
-            f"## ⏳ {days:02d} DAYS · {hours:02d} HOURS · {mins:02d} MIN · {seconds:02d} SEC\n"
-            f"**Kickoff <t:{TARGET_TS}:R>** — this Discord timestamp updates automatically.\n\n"
-            "🌴 Vice City hype • 🎙️ Community voice chat • 🏆 GTA trivia"
-        )
+        if IS_SPANISH:
+            description = (
+                f"## ⏳ {days:02d} DÍAS · {hours:02d} HORAS · {mins:02d} MIN · {seconds:02d} SEG\n"
+                f"**El evento comienza <t:{TARGET_TS}:R>** — esta hora relativa se actualiza automáticamente.\n\n"
+                "🌴 Rumbo a Vice City • 🎙️ Chat de voz • 🏆 Trivia de GTA"
+            )
+        else:
+            description = (
+                f"## ⏳ {days:02d} DAYS · {hours:02d} HOURS · {mins:02d} MIN · {seconds:02d} SEC\n"
+                f"**Kickoff <t:{TARGET_TS}:R>** — this Discord timestamp updates automatically.\n\n"
+                "🌴 Vice City hype • 🎙️ Community voice chat • 🏆 GTA trivia"
+            )
         color = discord.Color.from_rgb(255, 59, 186)
-    embed = discord.Embed(title=EVENT_TITLE, description=description, color=color)
-    embed.add_field(name="📅 Launch Eve Party", value=f"<t:{TARGET_TS}:F>", inline=False)
-    embed.add_field(name="🎮 Join the crew", value="Use the event button below to RSVP or join the party.", inline=False)
-    embed.set_footer(text=FOOTER + f" • Updates about every {UPDATE_SECONDS}s • Not a game unlock timer")
-    return embed
 
+    embed = discord.Embed(title=EVENT_TITLE, description=description, color=color)
+    embed.add_field(
+        name="📅 Fiesta previa al lanzamiento" if IS_SPANISH else "📅 Launch Eve Party",
+        value=f"<t:{TARGET_TS}:F>", inline=False)
+    embed.add_field(
+        name="🎮 Únete a la comunidad" if IS_SPANISH else "🎮 Join the crew",
+        value=("Usa el botón de abajo para confirmar tu asistencia al evento."
+               if IS_SPANISH else
+               "Use the event button below to RSVP or join the party."),
+        inline=False)
+    detail = (
+        f" • Se actualiza cada {UPDATE_SECONDS} s aprox. • No indica cuándo se desbloquea el juego"
+        if IS_SPANISH else
+        f" • Updates about every {UPDATE_SECONDS}s • Not a game unlock timer"
+    )
+    embed.set_footer(text=FOOTER + detail)
+    return embed
 
 def load_id() -> int | None:
     override = os.getenv("DISCORD_MESSAGE_ID", "").strip()
@@ -122,7 +158,7 @@ async def locate_existing(channel):
     # Recover safely if the volume was recreated: prefer to edit the old bot message.
     async for candidate in channel.history(limit=75):
         if (client.user and candidate.author.id == client.user.id and candidate.embeds
-                and candidate.embeds[0].title == EVENT_TITLE):
+                and candidate.embeds[0].title in (EVENT_TITLE_EN, EVENT_TITLE_ES)):
             return candidate
     return None
 
