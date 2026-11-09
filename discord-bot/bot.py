@@ -41,7 +41,7 @@ if TARGET.tzinfo is None:
 TARGET = TARGET.astimezone(timezone.utc)
 TARGET_TS = int(TARGET.timestamp())
 START = datetime(2026, 11, 9, tzinfo=timezone.utc)
-UPDATE_SECONDS = max(60, int(os.getenv("UPDATE_INTERVAL_SECONDS", "60")))
+UPDATE_SECONDS = max(15, int(os.getenv("UPDATE_INTERVAL_SECONDS", "15")))
 PIN_MESSAGE = os.getenv("PIN_MESSAGE", "false").lower() in ("1", "true", "yes")
 STATE_PATH = Path(os.getenv("STATE_FILE", "/data/message.json"))
 
@@ -49,7 +49,7 @@ intents = discord.Intents.none()
 intents.guilds = True
 client = discord.Client(intents=intents, allowed_mentions=discord.AllowedMentions.none())
 message: discord.Message | None = None
-last_minute: int | None = None
+last_second: int | None = None
 
 
 def view() -> discord.ui.View:
@@ -59,20 +59,21 @@ def view() -> discord.ui.View:
     return buttons
 
 
-def remaining_minutes(now: datetime) -> int:
-    return max(0, math.ceil((TARGET - now).total_seconds() / 60))
+def remaining_seconds(now: datetime) -> int:
+    return max(0, math.ceil((TARGET - now).total_seconds()))
 
 
 def make_embed(now: datetime) -> discord.Embed:
-    minutes = remaining_minutes(now)
-    days, extra = divmod(minutes, 1440)
-    hours, mins = divmod(extra, 60)
+    total_seconds = remaining_seconds(now)
+    days, extra = divmod(total_seconds, 86400)
+    hours, extra = divmod(extra, 3600)
+    mins, seconds = divmod(extra, 60)
     if now >= TARGET:
         description = "## 🎉 THE PARTY IS LIVE!\nWelcome to Vice City! Join us in Mig's World."
         color = discord.Color.from_rgb(72, 232, 252)
     else:
         description = (
-            f"## ⏳ {days:02d} DAYS · {hours:02d} HOURS · {mins:02d} MIN\n"
+            f"## ⏳ {days:02d} DAYS · {hours:02d} HOURS · {mins:02d} MIN · {seconds:02d} SEC\n"
             f"**Kickoff <t:{TARGET_TS}:R>** — this Discord timestamp updates automatically.\n\n"
             "🌴 Vice City hype • 🎙️ Community voice chat • 🏆 GTA trivia"
         )
@@ -80,7 +81,7 @@ def make_embed(now: datetime) -> discord.Embed:
     embed = discord.Embed(title=EVENT_TITLE, description=description, color=color)
     embed.add_field(name="📅 Launch Eve Party", value=f"<t:{TARGET_TS}:F>", inline=False)
     embed.add_field(name="🎮 Join the crew", value="Use the event button below to RSVP or join the party.", inline=False)
-    embed.set_footer(text=FOOTER + " • Countdown is to party kickoff, not game unlock")
+    embed.set_footer(text=FOOTER + f" • Updates about every {UPDATE_SECONDS}s • Not a game unlock timer")
     return embed
 
 
@@ -127,12 +128,12 @@ async def locate_existing(channel):
 
 
 async def publish() -> None:
-    global message, last_minute
+    global message, last_second
     now = datetime.now(timezone.utc)
-    minute = remaining_minutes(now)
-    if message is not None and last_minute == minute:
+    seconds = remaining_seconds(now)
+    if message is not None and last_second == seconds:
         return
-    channel = await get_channel()
+    channel = message.channel if message is not None else await get_channel()
     if message is None:
         message = await locate_existing(channel)
     card = make_embed(now)
@@ -153,11 +154,11 @@ async def publish() -> None:
             logger.warning("Countdown message was removed; creating one replacement")
             message = await channel.send(embed=card, view=buttons, silent=True)
             save_id(message.id)
-        logger.info("Updated countdown message %s: %s minutes remain", message.id, minute)
-    last_minute = minute
+        logger.info("Updated countdown message %s: %s seconds remain", message.id, seconds)
+    last_second = seconds
 
 
-@tasks.loop(seconds=60, reconnect=True)
+@tasks.loop(seconds=15, reconnect=True)
 async def update_countdown() -> None:
     try:
         await publish()
