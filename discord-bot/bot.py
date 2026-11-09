@@ -59,23 +59,56 @@ message: discord.Message | None = None
 last_second: int | None = None
 
 
-def view() -> discord.ui.View:
-    buttons = discord.ui.View(timeout=None)
+def link_view(spanish: bool) -> discord.ui.View:
+    """Simple event links; also used inside ephemeral translations."""
+    buttons = discord.ui.View(timeout=180)
     buttons.add_item(discord.ui.Button(
-        label="Unirse al evento" if IS_SPANISH else "Join Discord Event",
+        label="Unirse al evento" if spanish else "Join Discord Event",
         emoji="🎮", style=discord.ButtonStyle.link, url=EVENT_URL))
     buttons.add_item(discord.ui.Button(
-        label="Ver cuenta regresiva" if IS_SPANISH else "Open Live Countdown",
+        label="Ver cuenta regresiva" if spanish else "Open Live Countdown",
         emoji="🌐", style=discord.ButtonStyle.link,
-        url=COUNTDOWN_URL + ("es/" if IS_SPANISH else "")))
+        url=COUNTDOWN_URL + ("es/" if spanish else "")))
     return buttons
 
+
+class CountdownView(discord.ui.View):
+    """Persistent public view; translation is private to the button's viewer."""
+
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.add_item(discord.ui.Button(
+            label="Unirse al evento" if IS_SPANISH else "Join Discord Event",
+            emoji="🎮", style=discord.ButtonStyle.link, url=EVENT_URL))
+        self.add_item(discord.ui.Button(
+            label="Ver cuenta regresiva" if IS_SPANISH else "Open Live Countdown",
+            emoji="🌐", style=discord.ButtonStyle.link, url=COUNTDOWN_URL))
+
+    @discord.ui.button(
+        label="My language / Mi idioma", emoji="🌍",
+        style=discord.ButtonStyle.secondary,
+        custom_id="migs_world_gta_vi:my_language")
+    async def my_language(self, interaction: discord.Interaction, button: discord.ui.Button):
+        # Discord supplies the invoking member's client language (not their IP address).
+        spanish = str(interaction.locale).lower().startswith("es")
+        await interaction.response.send_message(
+            content=("🌍 Esta versión es privada y usa tu idioma de Discord."
+                     if spanish else
+                     "🌍 This private version uses your Discord language."),
+            embed=make_embed(datetime.now(timezone.utc), spanish=spanish),
+            view=link_view(spanish), ephemeral=True)
+
+
+def view() -> discord.ui.View:
+    return CountdownView()
 
 def remaining_seconds(now: datetime) -> int:
     return max(0, math.ceil((TARGET - now).total_seconds()))
 
 
-def make_embed(now: datetime) -> discord.Embed:
+def make_embed(now: datetime, spanish: bool | None = None) -> discord.Embed:
+    if spanish is None:
+        spanish = IS_SPANISH
     total_seconds = remaining_seconds(now)
     days, extra = divmod(total_seconds, 86400)
     hours, extra = divmod(extra, 3600)
@@ -84,12 +117,12 @@ def make_embed(now: datetime) -> discord.Embed:
     if now >= TARGET:
         description = (
             "## 🎉 ¡LA FIESTA YA COMENZÓ!\n¡Bienvenidos a Vice City! Únanse a Mig's World."
-            if IS_SPANISH else
+            if spanish else
             "## 🎉 THE PARTY IS LIVE!\nWelcome to Vice City! Join us in Mig's World."
         )
         color = discord.Color.from_rgb(72, 232, 252)
     else:
-        if IS_SPANISH:
+        if spanish:
             description = (
                 f"## ⏳ {days:02d} DÍAS · {hours:02d} HORAS · {mins:02d} MIN · {seconds:02d} SEG\n"
                 f"**El evento comienza <t:{TARGET_TS}:R>** — esta hora relativa se actualiza automáticamente.\n\n"
@@ -105,20 +138,22 @@ def make_embed(now: datetime) -> discord.Embed:
 
     embed = discord.Embed(title=EVENT_TITLE, description=description, color=color)
     embed.add_field(
-        name="📅 Fiesta previa al lanzamiento" if IS_SPANISH else "📅 Launch Eve Party",
+        name="📅 Fiesta previa al lanzamiento" if spanish else "📅 Launch Eve Party",
         value=f"<t:{TARGET_TS}:F>", inline=False)
     embed.add_field(
-        name="🎮 Únete a la comunidad" if IS_SPANISH else "🎮 Join the crew",
+        name="🎮 Únete a la comunidad" if spanish else "🎮 Join the crew",
         value=("Usa el botón de abajo para confirmar tu asistencia al evento."
-               if IS_SPANISH else
+               if spanish else
                "Use the event button below to RSVP or join the party."),
         inline=False)
     detail = (
         f" • Se actualiza cada {UPDATE_SECONDS} s aprox. • No indica cuándo se desbloquea el juego"
-        if IS_SPANISH else
+        if spanish else
         f" • Updates about every {UPDATE_SECONDS}s • Not a game unlock timer"
     )
-    embed.set_footer(text=FOOTER + detail)
+    footer = ("Mig's World • Evento de fans no oficial de GTA VI" if spanish
+              else "Mig's World • Unofficial GTA VI fan event")
+    embed.set_footer(text=footer + detail)
     return embed
 
 def load_id() -> int | None:
@@ -207,9 +242,16 @@ async def wait_ready() -> None:
     await client.wait_until_ready()
 
 
+locale_view_registered = False
+
+
 @client.event
 async def on_ready() -> None:
+    global locale_view_registered
     logger.info("Connected as %s; target channel %s", client.user, CHANNEL_ID)
+    if not locale_view_registered:
+        client.add_view(view())
+        locale_view_registered = True
     if not update_countdown.is_running():
         update_countdown.change_interval(seconds=UPDATE_SECONDS)
         update_countdown.start()
