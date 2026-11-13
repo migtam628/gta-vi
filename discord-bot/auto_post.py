@@ -172,6 +172,83 @@ def run_due(schedule, now):
         time.sleep(2)
 
 
+def catch_up_wiki(schedule):
+    """Opt-in, idempotent recovery of exactly four November 12 GTA Wiki posts.
+
+    The ordinary 7-minute expiry is bypassed ONLY for these four posts and
+    ONLY for a short recovery period. This does not replay older campaigns.
+    """
+    ids = {
+        "wiki-vice-city-1986-20261112",
+        "wiki-san-andreas-trivia-20261112",
+        "wiki-vice-city-radio-20261112",
+        "wiki-vice-city-fan-art-20261112",
+    }
+    entries = [e for e in schedule["entries"] if e["id"] in ids]
+    if {e["id"] for e in entries} != ids:
+        raise RuntimeError("Missing GTA Wiki posts in auto_post_schedule.json")
+    now = datetime.now(timezone.utc)
+    last_due = max(datetime.fromisoformat(e["at"]).astimezone(timezone.utc)
+                   for e in entries)
+    first_due = min(datetime.fromisoformat(e["at"]).astimezone(timezone.utc)
+                    for e in entries)
+    if now < first_due or now > last_due + timedelta(hours=48):
+        raise RuntimeError(
+            "This one-time catch-up is limited to Nov 12–14, 2026. "
+            "For a new date, create a fresh reviewed schedule."
+        )
+    guild_id = str(schedule["guild_id"])
+    state = read_json(STATE_PATH, default={})
+    pending = [e for e in sorted(entries, key=lambda item: item["at"])
+               if e["id"] not in state]
+    if not pending:
+        print("All four GTA Wiki posts already recorded as published. No duplicates sent.")
+        return
+    print(f"One-time catch-up: {len(pending)} outstanding GTA Wiki posts.", flush=True)
+    print("Checking target channels before posting...", flush=True)
+    channels = channels_for(guild_id)
+    errors = []
+    for entry in pending:
+        matching = channels.get(entry["channel"], [])
+        if len(matching) != 1:
+            errors.append(f"#{entry['channel']}: missing or duplicate channel")
+        elif matching[0]["type"] in (15, 16) and int(matching[0].get("flags", 0)) & 16:
+            errors.append(f"#{entry['channel']}: media/forum tag required")
+    if errors:
+        raise RuntimeError("Catch-up halted before sending:\n" + "\n".join(errors))
+    failures = 0
+    for entry in pending:
+        # Refresh the state before each post in case another worker recently posted.
+        state = read_json(STATE_PATH, default={})
+        if entry["id"] in state:
+            print(f"SKIP #{entry['channel']}: already published", flush=True)
+            continue
+        print(f"Publishing #{entry['channel']} — {entry['id']}...", flush=True)
+        try:
+            record_id, url = send_post(guild_id, entry, channels)
+        except RuntimeError as err:
+            failures += 1
+            print(f"FAILED #{entry['channel']}: {err}", flush=True)
+            if "403" in str(err):
+                print("Fix the bot's View Channel, Send Messages and thread/post "
+                      "permissions for this channel.", flush=True)
+            continue
+        state[entry["id"]] = {
+            "message_id": str(record_id),
+            "posted_utc": datetime.now(timezone.utc).isoformat(),
+            "recovered": True,
+        }
+        write_state(state)
+        print(f"POSTED #{entry['channel']}: {url}", flush=True)
+        time.sleep(2)
+    if failures:
+        raise RuntimeError(
+            f"{failures} channel post(s) failed. Re-run the same command after "
+            "fixing permissions; recorded successes will be skipped."
+        )
+    print("Catch-up complete; countdown and future schedules are unchanged.", flush=True)
+
+
 def preview(schedule):
     tz = ZoneInfo(schedule["timezone"])
     now = datetime.now(timezone.utc)
@@ -194,8 +271,15 @@ def main():
                         help="Display schedule and state without sending anything")
     parser.add_argument("--run", action="store_true",
                         help="Keep running and publish approved entries at their scheduled times")
+    parser.add_argument("--catch-up-wiki", action="store_true",
+                        help="Post only the four missed Nov 12 GTA Wiki posts now; deduplicated")
     args = parser.parse_args()
     schedule = load_schedule()
+    if args.catch_up_wiki:
+        if args.run or args.preview:
+            parser.error("--catch-up-wiki cannot be combined with --run or --preview")
+        catch_up_wiki(schedule)
+        return
     if args.preview or not args.run:
         preview(schedule)
         return
