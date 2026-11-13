@@ -226,3 +226,34 @@ Para desactivar desde `.env`, configura `AUTO_POST_ENABLED=false` y recrea el se
 **Important:** Automatic posting starts only when the VPS pulls this commit and runs Docker Compose; pushing code to GitHub cannot change the already-running VPS by itself. Your existing live countdown message is preserved. The scheduled campaign automatically ends November 30; no unverified game news or invented giveaways are posted.
 
 **Importante:** La publicación automática comienza únicamente cuando el VPS descarga estos cambios y ejecuta Docker Compose. El mensaje de cuenta regresiva que ya tienes se conserva. La campaña termina el 30 de noviembre; no se publican noticias sin confirmar ni premios inventados.
+
+## Nov 12 missed GTA Wiki posts — one-time recovery
+
+**Why they didn't show up / Por qué no aparecieron:**
+
+The four bilingual GTA Wiki posts were scheduled for November 12 at 2:32, 2:39, 2:46, and 2:53 PM Eastern. Their `grace_minutes: 7` setting intentionally prevents stale posts from appearing later if the VPS or Discord was offline or permissions prevented posting. **A restart by itself cannot publish expired entries.**
+
+Las cuatro publicaciones de GTA Wiki estaban programadas para el 12 de noviembre a las 2:32, 2:39, 2:46 y 2:53 p. m., hora del Este. Su límite de siete minutos evita que se publiquen tarde. **Reiniciar el bot no publica automáticamente los mensajes vencidos.**
+
+To restore **only those four** messages, before November 14 at 2:53 PM Eastern, run:
+
+```bash
+cd ~/gta-vi/discord-bot
+git pull --ff-only
+docker compose up -d --build --force-recreate auto-post
+
+# View current status without posting:
+docker compose exec -T auto-post python auto_post.py --preview
+
+# Explicitly publish the four missed, reviewed, bilingual GTA Wiki posts:
+docker compose exec -T auto-post python auto_post.py --catch-up-wiki
+
+# See any API permission errors and the next scheduled automatic publication:
+docker compose logs --tail=60 auto-post
+```
+
+The `--catch-up-wiki` operation is opt-in, publishes **only** the exact four Nov 12 wiki posts, and stores successful post IDs in `/data/auto_post_state.json`. If an individual channel fails with Discord `403 / 50013`, fix its bot role permissions and run the same catch-up command again; previously recorded posts are skipped. It doesn't alter your live countdown or replay other expired announcements. For Forum/Media channels, ensure Create Posts / Send Messages in Threads is granted and required tags are configured if applicable.
+
+El comando `--catch-up-wiki` es manual, publica **solo** las cuatro publicaciones de Wiki del 12 de noviembre y guarda los ID. Si un canal falla por permisos `403 / 50013`, corrige el rol del bot y ejecuta el mismo comando otra vez; los mensajes ya registrados no se duplicarán. La cuenta regresiva permanece intacta.
+
+If `--preview` shows `EXPIRED — skipped automatically`, that is expected for older scheduled content. Future entries continue automatically while the `auto-post` service is running and enabled.
