@@ -259,8 +259,16 @@ def preview(schedule):
     print("Already posted:", len(state))
     for entry in schedule["entries"]:
         when = datetime.fromisoformat(entry["at"])
-        past = when.astimezone(timezone.utc) < now
-        status = "POSTED" if entry["id"] in state else ("MISSED/PAST" if past else "UPCOMING")
+        elapsed = (now - when.astimezone(timezone.utc)).total_seconds()
+        allowed_age = min(GRACE_MINUTES, int(entry.get("grace_minutes", GRACE_MINUTES))) * 60
+        if entry["id"] in state:
+            status = "POSTED"
+        elif elapsed < 0:
+            status = "UPCOMING"
+        elif elapsed <= allowed_age:
+            status = "DUE — within posting window"
+        else:
+            status = "EXPIRED — skipped automatically"
         print(f"{when.astimezone(tz):%Y-%m-%d %I:%M %p} ET | "
               f"#{entry['channel']:<20} | {entry['id']:<24} | {status}")
 
@@ -285,6 +293,15 @@ def main():
         return
     log.info("Started; enabled=%s; timezone=%s; planned_posts=%s",
              ENABLED, schedule["timezone"], len(schedule["entries"]))
+    now = datetime.now(timezone.utc)
+    upcoming = [e for e in schedule["entries"]
+                if datetime.fromisoformat(e["at"]).astimezone(timezone.utc) >= now]
+    if upcoming:
+        next_entry = min(upcoming, key=lambda e: e["at"])
+        log.info("Next scheduled post: #%s at %s (%s)",
+                 next_entry["channel"], next_entry["at"], next_entry["id"])
+    else:
+        log.info("No future scheduled posts remain in this campaign")
     while True:
         if ENABLED:
             run_due(schedule, datetime.now(timezone.utc))
